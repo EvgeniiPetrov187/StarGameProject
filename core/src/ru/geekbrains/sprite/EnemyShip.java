@@ -10,6 +10,11 @@ import ru.geekbrains.pool.ExplosionPool;
 
 public class EnemyShip extends Ship {
 
+    private final float SMALL_SHIP_SPEED_X = 0.02f;
+    private final float OTHER_SHIP_SPEED_X = 0.01f;
+    private final float SHIP_NAVI = 0.06f;
+
+
     public EnemyShip(BulletPool bulletPool, ExplosionPool explosionPool, Rect worldBounds, Sound sound) {
         this.bulletPool = bulletPool;
         this.explosionPool = explosionPool;
@@ -17,9 +22,10 @@ public class EnemyShip extends Ship {
         this.sound = sound;
     }
 
+    // с помощью нового метода update вражеские корабли могут преследовать игрока и с каждым уровнем двигаютя быстрее
     @Override
-    public void update(float delta) {
-        super.update(delta);
+    public void update(float delta, float speed, int level) {
+        super.update(delta, speed, level);
         if (getTop() < worldBounds.getTop()) {
             v.set(v0);
         } else {
@@ -27,6 +33,23 @@ public class EnemyShip extends Ship {
         }
         if (getBottom() < worldBounds.getBottom()) {
             destroy();
+        }
+        if (v.y > -0.1) {
+            if (pos.x < speed)
+                v.x = OTHER_SHIP_SPEED_X + (0.005f * level);
+            if (pos.x > speed)
+                v.x = -OTHER_SHIP_SPEED_X - (0.005f * level);
+            if (getLeft() + SHIP_NAVI < speed && getRight() - SHIP_NAVI > speed) {
+                v.x = 0;
+            }
+        } else {
+            if (pos.x < speed)
+                v.x = SMALL_SHIP_SPEED_X + (0.005f * level);
+            if (pos.x > speed)
+                v.x = -SMALL_SHIP_SPEED_X - (0.005f * level);
+            if (getLeft() < speed && getRight() > speed) {
+                v.x = 0;
+            }
         }
     }
 
@@ -59,5 +82,4 @@ public class EnemyShip extends Ship {
                 || bullet.getBottom() > getTop()
                 || bullet.getTop() < pos.y);
     }
-
 }

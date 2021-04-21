@@ -13,11 +13,13 @@ public class EnemyPool extends SpritesPool<EnemyShip> {
     private final Rect worldBounds;
     private final Sound sound;
 
+
     public EnemyPool(BulletPool bulletPool, ExplosionPool explosionPool, Rect worldBounds, Sound sound) {
         this.bulletPool = bulletPool;
         this.explosionPool = explosionPool;
         this.worldBounds = worldBounds;
         this.sound = sound;
+
     }
 
     @Override
