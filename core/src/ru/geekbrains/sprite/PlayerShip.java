@@ -1,73 +1,172 @@
 package ru.geekbrains.sprite;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.base.Sprite;
 import ru.geekbrains.math.Rect;
+import ru.geekbrains.pool.BulletPool;
 
 public class PlayerShip extends Sprite {
 
+    private static final float HEIGHT = 0.15f;
+    private static final float PADDING = 0.05f;
 
-    private static final float V_LEN = 0.012f;
-    private static final float Y_BOTTOM = -0.3f;
-    private static final float X_RIGHT_BORDER = 0.26f;
-    private static final float X_LEFT_BORDER = -0.26f;
-    private Vector2 v;
-    private Vector2 point;
-    private Vector2 temp;
+    private static final int INVALID_POINTER = -1;
+    private static final float RELOAD_INTERVAL = 0.15f;
 
-    public PlayerShip(TextureAtlas atlas) {
-        super(new TextureRegion(atlas.findRegion("main_ship"), 0, 0, 195, 287));
-        point = new Vector2();
+    private Rect worldBounds;
+    private BulletPool bulletPool;
+    private TextureRegion bulletRegion;
+    private Vector2 bulletV;
+
+    private final Vector2 v;
+    private final Vector2 v0;
+
+    private boolean pressedLeft;
+    private boolean pressedRight;
+
+    private int leftPointer = INVALID_POINTER;
+    private int rightPointer = INVALID_POINTER;
+
+    private final Sound shot = Gdx.audio.newSound(Gdx.files.internal("sounds/laser.wav"));
+
+    private float reloadTimer;
+
+    public PlayerShip(TextureAtlas atlas, BulletPool bulletPool) {
+        super(atlas.findRegion("main_ship"), 1, 2, 2);
+        this.bulletPool = bulletPool;
+        this.bulletRegion = atlas.findRegion("bulletMainShip");
+        bulletV = new Vector2(0, 0.5f);
         v = new Vector2();
-        temp = new Vector2();
+        v0 = new Vector2(0.5f, 0);
     }
 
     @Override
     public void resize(Rect worldBounds) {
-        setHeightProportion(0.2f);
-        this.pos.set(worldBounds.pos.x, Y_BOTTOM);
+        this.worldBounds = worldBounds;
+        setHeightProportion(HEIGHT);
+        setBottom(worldBounds.getBottom() + PADDING);
     }
 
     @Override
     public void update(float delta) {
-        temp.set(point);
-        if (temp.sub(pos.x, Y_BOTTOM).len() < v.len()) {
-            pos.set(point.x, Y_BOTTOM);
-        } else {
-            pos.add(v);
+        pos.mulAdd(v, delta);
+        if (getRight() > worldBounds.getRight()) {
+            setRight(worldBounds.getRight());
+            stop();
         }
-        if (pos.x > X_RIGHT_BORDER) {
-            pos.set(X_RIGHT_BORDER, Y_BOTTOM);
+        if (getLeft() < worldBounds.getLeft()) {
+            setLeft(worldBounds.getLeft());
+            stop();
         }
-        if (pos.x < X_LEFT_BORDER) {
-            pos.set(X_LEFT_BORDER, Y_BOTTOM);
+        reloadTimer += delta;
+        if (reloadTimer > RELOAD_INTERVAL) {
+            reloadTimer = 0f;
+            shoot();
         }
     }
 
-    public boolean TouchDown(Vector2 touch, int pointer, int button) {
-        point.set(touch.x, Y_BOTTOM);
-        v.set(touch.x, 0);
-        v.setLength(V_LEN);
+    @Override
+    public boolean touchDown(Vector2 touch, int pointer, int button) {
+        if (touch.x < worldBounds.pos.x) {
+            if (leftPointer != INVALID_POINTER) {
+                return false;
+            }
+            leftPointer = pointer;
+            moveLeft();
+        } else {
+            if (rightPointer != INVALID_POINTER) {
+                return false;
+            }
+            rightPointer = pointer;
+            moveRight();
+        }
+        return false;
+    }
+
+    @Override
+    public boolean touchUp(Vector2 touch, int pointer, int button) {
+        if (pointer == leftPointer) {
+            leftPointer = INVALID_POINTER;
+            if (rightPointer != INVALID_POINTER) {
+                moveRight();
+            } else {
+                stop();
+            }
+        } else if (pointer == rightPointer) {
+            rightPointer = INVALID_POINTER;
+            if (leftPointer != INVALID_POINTER) {
+                moveLeft();
+            } else {
+                stop();
+            }
+        }
         return false;
     }
 
     public boolean keyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.RIGHT:
-                point.set(pos.x + 0.1f, Y_BOTTOM);
-                v.set(0.1f, 0);
-                v.setLength(V_LEN);
+            case Input.Keys.D:
+                moveRight();
+                pressedRight = true;
                 break;
             case Input.Keys.LEFT:
-                point.set(pos.x - 0.1f, Y_BOTTOM);
-                v.set(-0.1f, 0);
-                v.setLength(V_LEN);
+            case Input.Keys.A:
+                moveLeft();
+                pressedLeft = true;
+                break;
+            case Input.Keys.SPACE:
+                shoot();
                 break;
         }
         return false;
+    }
+
+    public boolean keyUp(int keycode) {
+        switch (keycode) {
+            case Input.Keys.RIGHT:
+            case Input.Keys.D:
+                pressedRight = false;
+                if (pressedLeft) {
+                    moveLeft();
+                } else {
+                    stop();
+                }
+                break;
+            case Input.Keys.LEFT:
+            case Input.Keys.A:
+                pressedLeft = false;
+                if (pressedRight) {
+                    moveRight();
+                } else {
+                    stop();
+                }
+                break;
+        }
+        return false;
+    }
+
+    private void moveRight() {
+        v.set(v0);
+    }
+
+    private void moveLeft() {
+        v.set(v0).rotateDeg(180);
+    }
+
+    private void stop() {
+        v.setZero();
+    }
+
+    private void shoot() {
+        Bullet bullet = bulletPool.obtain();
+        bullet.set(this, bulletRegion, this.pos, bulletV, worldBounds, 1, 0.01f);
+        shot.play();
     }
 }
