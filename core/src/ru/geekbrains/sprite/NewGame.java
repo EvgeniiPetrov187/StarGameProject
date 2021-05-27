@@ -7,27 +7,26 @@ import ru.geekbrains.base.BaseButton;
 import ru.geekbrains.math.Rect;
 import ru.geekbrains.screen.GameScreen;
 
-public class PlayButton extends BaseButton {
+public class NewGame extends BaseButton {
 
-    private static final float HEIGHT = 0.25f;
-    private static final float PADDING = 0.04f;
-
+    private static final float PADDING = 0.05f;
     private final Game game;
 
-    public PlayButton(TextureAtlas atlas, Game game) {
-        super(atlas.findRegion("btPlay"));
+    public NewGame(TextureAtlas atlas, Game game) {
+        super(atlas.findRegion("button_new_game"));
         this.game = game;
     }
 
     @Override
     public void resize(Rect worldBounds) {
-        setHeightProportion(HEIGHT);
+        setHeightProportion(0.05f);
         setBottom(worldBounds.getBottom() + PADDING);
-        setLeft(worldBounds.getLeft() + PADDING);
     }
 
     @Override
     public void action() {
-        game.setScreen(new GameScreen(game));
+        game.setScreen(new GameScreen(this.game));
     }
 }
+
+

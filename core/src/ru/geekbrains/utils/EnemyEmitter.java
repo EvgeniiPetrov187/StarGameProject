@@ -34,7 +34,6 @@ public class EnemyEmitter {
     private static final float ENEMY_BIG_RELOAD_INTERVAL = 1f;
     private static final int ENEMY_BIG_HP = 10;
 
-    private EnemyShip enemyShip;
     private final Rect worldBounds;
     private final EnemyPool enemyPool;
 
@@ -43,12 +42,11 @@ public class EnemyEmitter {
     private final TextureRegion[] enemyBigRegions;
     private final TextureRegion bulletRegion;
 
-    private Vector2 enemySmallV;
-    private Vector2 enemyMediumV;
-    private Vector2 enemyBigV;
+    private final Vector2 enemySmallV;
+    private final Vector2 enemyMediumV;
+    private final Vector2 enemyBigV;
 
     private float generateTimer;
-    private boolean count = false;
 
     public EnemyEmitter(Rect worldBounds, EnemyPool enemyPool, TextureAtlas atlas) {
         this.worldBounds = worldBounds;
@@ -62,12 +60,11 @@ public class EnemyEmitter {
         enemyBigRegions = Regions.split(atlas.findRegion("enemy2"), 1, 2, 2);
     }
 
-    public void generate(float delta, Vector2 collisionLeft, Vector2 collisionRight) {
+    public void generate(float delta) {
         generateTimer += delta;
         if (generateTimer >= GENERATE_INTERVAL) {
-            count = true;
             generateTimer = 0;
-            enemyShip = enemyPool.obtain();
+            EnemyShip enemyShip = enemyPool.obtain();
             float type = (float) Math.random();
             if (type < 0.5f) {
                 enemyShip.set(
@@ -81,7 +78,7 @@ public class EnemyEmitter {
                         ENEMY_SMALL_HEIGHT,
                         ENEMY_SMALL_HP
                 );
-            } else if (type < 0.8) {
+            } else if (type < 0.8f) {
                 enemyShip.set(
                         enemyMediumRegions,
                         enemyMediumV,
@@ -112,13 +109,5 @@ public class EnemyEmitter {
             );
             enemyShip.setBottom(worldBounds.getTop());
         }
-        if (count) {
-            if (enemyShip.getCollision(collisionLeft, collisionRight)) {
-                System.out.println("You are GOD");
-            }
-        }
     }
 }
-
-
-

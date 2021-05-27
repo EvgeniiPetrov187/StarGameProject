@@ -6,11 +6,13 @@ import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.math.Rect;
 import ru.geekbrains.pool.BulletPool;
+import ru.geekbrains.pool.ExplosionPool;
 
 public class EnemyShip extends Ship {
 
-    public EnemyShip(BulletPool bulletPool, Rect worldBounds, Sound sound) {
+    public EnemyShip(BulletPool bulletPool, ExplosionPool explosionPool, Rect worldBounds, Sound sound) {
         this.bulletPool = bulletPool;
+        this.explosionPool = explosionPool;
         this.worldBounds = worldBounds;
         this.sound = sound;
     }
@@ -18,6 +20,11 @@ public class EnemyShip extends Ship {
     @Override
     public void update(float delta) {
         super.update(delta);
+        if (getTop() < worldBounds.getTop()) {
+            v.set(v0);
+        } else {
+            reloadTimer = reloadInterval * 0.8f;
+        }
         if (getBottom() < worldBounds.getBottom()) {
             destroy();
         }
@@ -35,7 +42,8 @@ public class EnemyShip extends Ship {
             int hp
     ) {
         this.regions = regions;
-        this.v.set(v);
+        this.v0.set(v);
+        this.v.set(0, -0.3f);
         this.bulletRegion = bulletRegion;
         this.bulletHeight = bulletHeight;
         this.bulletV.set(0, bulletVY);
@@ -45,14 +53,11 @@ public class EnemyShip extends Ship {
         this.hp = hp;
     }
 
-    public boolean getCollision(Vector2 collisionLeft, Vector2 collisionRight ) {
-        if (this.pos.y < collisionRight.y && getRight() >= collisionLeft.x && getLeft() <= collisionRight.x) {
-            this.destroy();
-            return true;
-        }
-        return false;
+    public boolean isBulletCollision(Rect bullet) {
+        return !(bullet.getRight() < getLeft()
+                || bullet.getLeft() > getRight()
+                || bullet.getBottom() > getTop()
+                || bullet.getTop() < pos.y);
     }
+
 }
-
-
-
