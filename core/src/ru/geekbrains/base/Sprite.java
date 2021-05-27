@@ -39,7 +39,9 @@ public class Sprite extends Rect {
     }
 
     public void update(float delta) {
+    }
 
+    public void update(float delta, float speed, int level) {
     }
 
     public void draw(SpriteBatch batch) {

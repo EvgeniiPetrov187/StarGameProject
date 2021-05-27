@@ -59,6 +59,19 @@ public class Ship extends Sprite {
             frame = 0;
         }
     }
+    @Override
+    public void update(float delta, float speed, int level) {
+        pos.mulAdd(v, delta);
+        reloadTimer += delta;
+        if (reloadTimer > reloadInterval) {
+            reloadTimer = 0f;
+            shoot();
+        }
+        damageAnimateTimer += delta;
+        if (damageAnimateTimer >= DAMAGE_ANIMATE_INTERVAL) {
+            frame = 0;
+        }
+    }
 
     public void damage(int damage) {
         hp -= damage;
@@ -78,6 +91,10 @@ public class Ship extends Sprite {
 
     public int getDamage() {
         return damage;
+    }
+
+    public int getHp() {
+        return hp;
     }
 
     private void shoot() {

@@ -14,6 +14,7 @@ public class PlayerShip extends Ship {
     private static final float HEIGHT = 0.15f;
     private static final float PADDING = 0.05f;
 
+    private static final int HP = 100;
     private static final int INVALID_POINTER = -1;
 
     private boolean pressedLeft;
@@ -33,7 +34,18 @@ public class PlayerShip extends Ship {
         bulletHeight = 0.01f;
         damage = 1;
         reloadInterval = 0.2f;
-        hp = 100;
+        hp = HP;
+    }
+
+    public void startNewGame() {
+        pressedLeft = false;
+        pressedRight = false;
+        leftPointer = INVALID_POINTER;
+        rightPointer = INVALID_POINTER;
+        stop();
+        this.pos.x = worldBounds.pos.x;
+        hp = HP;
+        flushDestroy();
     }
 
     @Override
