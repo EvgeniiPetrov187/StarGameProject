@@ -1,27 +1,36 @@
 package ru.geekbrains.screen;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 
 import ru.geekbrains.base.BaseScreen;
+import ru.geekbrains.math.Rect;
+import ru.geekbrains.sprite.Background;
+import ru.geekbrains.sprite.Logo;
 
 public class MenuScreen extends BaseScreen {
 
+    private Texture bg;
+    private Background background;
     private Texture img;
-    private Vector2 pos;
-    private Vector2 v;
-    private Vector2 point;
+    private Logo logo;
 
     @Override
     public void show() {
         super.show();
+        bg = new Texture("textures/bg.png");
+        background = new Background(bg);
         img = new Texture("badlogic.jpg");
-        pos = new Vector2();
-        v = new Vector2();
-        point = new Vector2();
+        logo = new Logo(img);
+    }
+
+    @Override
+    public void resize(Rect worldBounds) {
+        super.resize(worldBounds);
+        background.resize(worldBounds);
+        logo.resize(worldBounds);
     }
 
     @Override
@@ -30,31 +39,26 @@ public class MenuScreen extends BaseScreen {
         Gdx.gl.glClearColor(0.56f, 0.81f, 0.26f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
-        batch.draw(img, pos.x, pos.y);
+        background.draw(batch);
+        logo.draw(batch);
         batch.end();
-        pos.add(v);
-        if (Math.round(pos.y/5) == Math.round(point.y/5)
-                && Math.round(pos.x/5) == Math.round(point.x/5)){
-            // Делим на 5 для меньшей точности совпадения координат
-            v.set(0, 0);
-        }
     }
 
     @Override
     public void dispose() {
         super.dispose();
+        bg.dispose();
         img.dispose();
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        System.out.println("touchDown screenX = " + screenX + " screenY = " + screenY);
-        point.set(screenX, Gdx.graphics.getHeight() - screenY);
-        v.set(point.x - pos.x, point.y - pos.y);
-        v.nor().scl(2f);
+    public boolean touchDown(Vector2 touch, int pointer, int button) {
+        System.out.println("touchDown screenX = " + touch.x + " screenY = " + touch.y);
+        logo.move(touch, pointer, button);
         return false;
     }
 
+/*
     @Override
     public boolean keyDown(int keycode) {
         switch (keycode) {
@@ -72,5 +76,5 @@ public class MenuScreen extends BaseScreen {
                 break;
         }
         return false;
-    }
+}*/
 }
